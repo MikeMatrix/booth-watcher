@@ -17,7 +17,7 @@ async function run(): Promise<void> {
 
     try {
       for (let itemId of JSON.parse(
-        (await fs.promises.readFile('known-item-ids.json')).toString()
+        (await fs.promises.readFile('config/known-item-ids.json')).toString()
       )) {
         knownItemIdSet.add(itemId);
       }
@@ -68,7 +68,7 @@ async function run(): Promise<void> {
     }
 
     await fs.promises.writeFile(
-      'known-item-ids.json',
+      'config/known-item-ids.json',
       JSON.stringify([...knownItemIdSet].slice(-1000))
     );
   } catch (err) {
