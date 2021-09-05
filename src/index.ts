@@ -10,7 +10,6 @@ import * as fs from 'fs';
 import * as util from './util';
 import * as booth from './booth';
 import * as discord from './discord';
-import * as delay from 'delay';
 
 async function run(): Promise<void> {
   try {
@@ -18,63 +17,60 @@ async function run(): Promise<void> {
 
     try {
       for (let itemId of JSON.parse(
-        (await fs.promises.readFile('/booth/config/known-item-ids.json')).toString()
+        (await fs.promises.readFile('known-item-ids.json')).toString()
       )) {
         knownItemIdSet.add(itemId);
       }
-    } catch (err) {
-      console.error(err);
-    }
+    } catch {}
 
     let items = (await booth.getNewestItems()).reverse();
 
     for (let item of items) {
-      if (knownItemIdSet.has(item.id) === true) {
-        continue;
-      }
+      if (knownItemIdSet.has(item.id) === false) {
+        knownItemIdSet.add(item.id);
 
-      knownItemIdSet.add(item.id);
+        let url = `https://booth.pm/en/items/${item.id}`;
+        let embeds = [
+          {
+            title: item.title,
+            description: item.price,
+            url,
+            color: 16777215,
+            author: {
+              name: item.shopName,
+              url: item.shopUrl,
+              icon_url: item.shopImageUrl
+            }
+          }
+        ] as any[];
 
-      let url = `https://booth.pm/en/items/${item.id}`;
-      let embeds = [
-        {
-          title: item.title,
-          description: item.price,
-          url,
-          color: 16777215,
-          author: {
-            name: item.shopName,
-            url: item.shopUrl,
-            icon_url: item.shopImageUrl
+        if (item.thumbnailImageUrls.length > 0) {
+          embeds[0].image = {
+            url: item.thumbnailImageUrls[0]
+          };
+
+          for (let i = 1; i < 4 && i < item.thumbnailImageUrls.length; ++i) {
+            embeds.push({
+              url,
+              image: {
+                url: item.thumbnailImageUrls[i]
+              }
+            });
           }
         }
-      ] as any[];
 
-      if (item.thumbnailImageUrls.length > 0) {
-        embeds[0].image = {
-          url: item.thumbnailImageUrls[0]
-        };
+        await discord.executeWebhook(process.env.BOOTH_WEBHOOK_URL!, {
+          embeds
+        });
 
-        for (let i = 1; i < 4 && i < item.thumbnailImageUrls.length; ++i) {
-          embeds.push({
-            url,
-            image: {
-              url: item.thumbnailImageUrls[i]
-            }
-          });
-        }
+        await fs.promises.writeFile(
+          'known-item-ids.json',
+          JSON.stringify([...knownItemIdSet].slice(-1000))
+        );
+
+        await timer(10000);
       }
-
-      await discord.executeWebhook(process.env.BOOTH_WEBHOOK_URL!, {
-        embeds
-      });
     }
-
-    await fs.promises.writeFile(
-      '/booth/config/known-item-ids.json',
-      JSON.stringify([...knownItemIdSet].slice(-1000))
-    );
-    await delay(10000);
   } catch (err) {
     console.error(err);
   }
@@ -83,3 +79,5 @@ async function run(): Promise<void> {
 (function bootstrap(): void {
   run().catch(util.nop);
 })();
+
+const timer = (ms:number) => new Promise(res => setTimeout(res, ms));

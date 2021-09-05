@@ -5,7 +5,7 @@ WORKDIR /booth/
 ADD --chown=1000:1000 ./ ./
 
 RUN npm install
-RUN npm run prod
+RUN npm run dev
 RUN mkdir config
 
 VOLUME /booth/config/
