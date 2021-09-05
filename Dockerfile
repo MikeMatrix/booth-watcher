@@ -6,7 +6,9 @@ ADD . .
 RUN npm install
 RUN npm run prod
 
-WORKDIR dist/
-CMD ["npm", "run start"]
 VOLUME config/
+
+RUN chmod +x run.sh
+CMD ./run.sh
+
 ENV BOOTH_WEBHOOK_URL=""
