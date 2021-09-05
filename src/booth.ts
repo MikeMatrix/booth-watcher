@@ -32,7 +32,8 @@ export async function getNewestItems(): Promise<BoothItem[]> {
 
   let response = await client.request<string>({
     // url: 'https://booth.pm/en/browse/3D%20Models?adult=include&sort=new'
-    url: 'https://booth.pm/en/browse/3D%20Models?sort=new'
+    // url: 'https://booth.pm/en/browse/3D%20Models?sort=new'
+    url: 'https://booth.pm/en/search/UDON?sort=new'
   });
 
   let $ = cheerio.load(response.data);
