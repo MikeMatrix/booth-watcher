@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as util from './util';
 import * as booth from './booth';
 import * as discord from './discord';
+import * as delay from 'delay';
 
 async function run(): Promise<void> {
   try {
@@ -71,7 +72,7 @@ async function run(): Promise<void> {
       './config/known-item-ids.json',
       JSON.stringify([...knownItemIdSet].slice(-1000))
     );
-    await timer(10000);
+    await delay(10000);
   } catch (err) {
     console.error(err);
   }
@@ -80,5 +81,3 @@ async function run(): Promise<void> {
 (function bootstrap(): void {
   run().catch(util.nop);
 })();
-// eslint-disable-next-line no-promise-executor-return,@typescript-eslint/explicit-function-return-type
-const timer = (ms:number) => new Promise(res => setTimeout(res, ms));

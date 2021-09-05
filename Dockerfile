@@ -6,6 +6,7 @@ ADD . .
 
 RUN npm install
 RUN npm run prod
+RUN mkdir config
 
 VOLUME /booth/config/
 
