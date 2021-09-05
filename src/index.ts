@@ -22,7 +22,9 @@ async function run(): Promise<void> {
       )) {
         knownItemIdSet.add(itemId);
       }
-    } catch {}
+    } catch (err) {
+      console.error(err);
+    }
 
     let items = (await booth.getNewestItems()).reverse();
 
