@@ -71,6 +71,7 @@ async function run(): Promise<void> {
       'config/known-item-ids.json',
       JSON.stringify([...knownItemIdSet].slice(-1000))
     );
+    await timer(10000);
   } catch (err) {
     console.error(err);
   }
@@ -79,3 +80,5 @@ async function run(): Promise<void> {
 (function bootstrap(): void {
   run().catch(util.nop);
 })();
+// eslint-disable-next-line no-promise-executor-return,@typescript-eslint/explicit-function-return-type
+const timer = (ms:number) => new Promise(res => setTimeout(res, ms));
