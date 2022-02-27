@@ -132,7 +132,7 @@ const run = async (): Promise<void> => {
 
   console.info("Starting to fetch new items.")
   fetchAndAppendToQueue();
-  setInterval(fetchAndAppendToQueue, 20000);
+  setInterval(fetchAndAppendToQueue, 60000);
 };
 
 void run();
