@@ -5,7 +5,8 @@
     "alwaysStrict": true,
     "strict": true,
     "moduleResolution": "Node",
-    "preserveConstEnums": true
+    "preserveConstEnums": true,
+    "useDefineForClassFields": true
   },
   "exclude": ["node_modules", "dist"]
 }

@@ -4,30 +4,68 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 import * as dotenv from 'dotenv';
-dotenv.config();
-
 import * as fs from 'fs';
-import * as util from './util';
+import {autorun, observable, runInAction, toJS} from 'mobx';
+import {queueProcessor} from 'mobx-utils';
+import {RateLimiterMemory, RateLimiterQueue} from 'rate-limiter-flexible';
 import * as booth from './booth';
 import * as discord from './discord';
 
-async function run(): Promise<void> {
+dotenv.config();
+
+const limiter = new RateLimiterMemory({
+  points: 2,
+  duration: 10
+});
+
+const requestQueue = new RateLimiterQueue(limiter);
+
+const KNWON_ITEM_IDS_FILE = 'known-item-ids.json';
+
+const run = async (): Promise<void> => {
+  console.info('Loading known Item IDs...');
+  const cachedItemIdSet = new Set<string>();
   try {
-    let knownItemIdSet = new Set<string>(); // 들어온 순서 보장
+    for (let itemId of JSON.parse(
+      (await fs.promises.readFile(KNWON_ITEM_IDS_FILE)).toString()
+    )) {
+      cachedItemIdSet.add(itemId);
+    }
+  } catch {}
+  console.info('Loaded Item IDs.');
 
-    try {
-      for (let itemId of JSON.parse(
-        (await fs.promises.readFile('known-item-ids.json')).toString()
-      )) {
-        knownItemIdSet.add(itemId);
+  const knownItemIdSet = observable.set<string>(cachedItemIdSet);
+  const enqueuedNotificationSet = observable.set<string>();
+  const processingQueue = observable.array<booth.BoothItem>([]);
+
+  autorun(
+    () => {
+      console.log('Updating known-item-ids.');
+      fs.writeFileSync(
+        KNWON_ITEM_IDS_FILE,
+        JSON.stringify([...toJS(knownItemIdSet)])
+      );
+    },
+    {delay: 1000}
+  );
+
+  autorun(
+    () => {
+      if (enqueuedNotificationSet.size) {
+        console.info(`Notification Queue: ${enqueuedNotificationSet.size}`);
       }
-    } catch {}
+    },
+    {delay: 1000}
+  );
 
-    let items = (await booth.getNewestItems()).reverse();
-
-    for (let item of items) {
-      if (knownItemIdSet.has(item.id) === false) {
-        knownItemIdSet.add(item.id);
+  queueProcessor(
+    processingQueue,
+    (item) => {
+      if (
+        !knownItemIdSet.has(item.id) &&
+        !enqueuedNotificationSet.has(item.id)
+      ) {
+        console.info(`Processing not seen Item: ${item.id} - <${item.title}>`);
 
         let url = `https://booth.pm/en/items/${item.id}`;
         let embeds = [
@@ -59,25 +97,42 @@ async function run(): Promise<void> {
           }
         }
 
-        await discord.executeWebhook(process.env.BOOTH_WEBHOOK_URL!, {
-          embeds
+        enqueuedNotificationSet.add(item.id);
+
+        void requestQueue.removeTokens(1).then(() => {
+          // Check again if we're still needing to send the notification
+          if (knownItemIdSet.has(item.id)) {
+            return;
+          }
+
+          console.info(`Sending notification for Item: ${item.id}`);
+          return discord
+            .executeWebhook(process.env.DISCORD_WEBHOOK_URL!, {
+              embeds
+            })
+            .then(() => {
+              runInAction(() => {
+                knownItemIdSet.add(item.id);
+                enqueuedNotificationSet.delete(item.id);
+              });
+            });
         });
-
-        await fs.promises.writeFile(
-          'known-item-ids.json',
-          JSON.stringify([...knownItemIdSet].slice(-1000))
-        );
-
-        await timer(10000);
       }
-    }
-  } catch (err) {
-    console.error(err);
-  }
-}
+    },
+    1000
+  );
 
-(function bootstrap(): void {
-  run().catch(util.nop);
-})();
+  const fetchAndAppendToQueue = (): void => {
+    void booth.getNewestItems().then((result) => {
+      runInAction(() => {
+        processingQueue.push(...result.reverse());
+      });
+    });
+  };
 
-const timer = (ms:number) => new Promise(res => setTimeout(res, ms));
+  console.info("Starting to fetch new items.")
+  fetchAndAppendToQueue();
+  setInterval(fetchAndAppendToQueue, 20000);
+};
+
+void run();

@@ -2,7 +2,7 @@ import * as https from 'https';
 import * as axios from 'axios';
 import * as cheerio from 'cheerio';
 import * as constants from './constants';
-import * as discord from './discord';
+import {flow, makeObservable} from 'mobx';
 
 export interface BoothItem {
   id: string;
@@ -31,9 +31,7 @@ export async function getNewestItems(): Promise<BoothItem[]> {
   let items = [] as BoothItem[];
 
   let response = await client.request<string>({
-    // url: 'https://booth.pm/en/browse/3D%20Models?adult=include&sort=new'
-    // url: 'https://booth.pm/en/browse/3D%20Models?sort=new'
-    url: 'https://booth.pm/en/search/UDON?sort=new'
+    url: process.env.BOOTH_FETCH_URL
   });
 
   let $ = cheerio.load(response.data);
