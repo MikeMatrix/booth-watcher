@@ -82,8 +82,8 @@ const run = async (): Promise<void> => {
                 value: item.id,
               },
               {
-                name: 'Shop Name',
-                value: item.shopName,
+                name: 'Shop Name/URL',
+                value: `${item.shopName} / ${item.shopUrl}`,
               },
             ],
             color: 16777215,
