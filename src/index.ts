@@ -71,7 +71,6 @@ const run = async (): Promise<void> => {
         let embeds = [
           {
             title: item.title,
-            description: item.price,
             url,
             fields: [
               {
@@ -81,6 +80,10 @@ const run = async (): Promise<void> => {
               {
                 name: 'Booth ID',
                 value: item.id,
+              },
+              {
+                name: 'Shop Name',
+                value: item.shopName,
               },
             ],
             color: 16777215,
