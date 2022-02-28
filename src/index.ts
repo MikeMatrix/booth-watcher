@@ -73,12 +73,22 @@ const run = async (): Promise<void> => {
             title: item.title,
             description: item.price,
             url,
+            fields: [
+              {
+                name: 'Price',
+                value: item.price,
+              },
+              {
+                name: 'Booth ID',
+                value: item.id,
+              },
+            ],
             color: 16777215,
             author: {
               name: item.shopName,
               url: item.shopUrl,
               icon_url: item.shopImageUrl
-            }
+            },
           }
         ] as any[];
 
