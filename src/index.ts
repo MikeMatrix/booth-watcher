@@ -76,10 +76,12 @@ const run = async (): Promise<void> => {
               {
                 name: 'Price',
                 value: item.price,
+                inline: true,
               },
               {
                 name: 'Booth ID',
                 value: item.id,
+                inline: true,
               },
               {
                 name: 'Shop Name/URL',
