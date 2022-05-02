@@ -2,7 +2,6 @@ import * as https from 'https';
 import * as axios from 'axios';
 import * as cheerio from 'cheerio';
 import * as constants from './constants';
-import {flow, makeObservable} from 'mobx';
 
 export interface BoothItem {
   id: string;

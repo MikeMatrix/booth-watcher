@@ -10,12 +10,13 @@ import {queueProcessor} from 'mobx-utils';
 import {RateLimiterMemory, RateLimiterQueue} from 'rate-limiter-flexible';
 import * as booth from './booth';
 import * as discord from './discord';
+import { translateToEn } from './translate';
 
 dotenv.config();
 
 const limiter = new RateLimiterMemory({
   points: 2,
-  duration: 10
+  duration: 10,
 });
 
 const requestQueue = new RateLimiterQueue(limiter);
@@ -60,17 +61,20 @@ const run = async (): Promise<void> => {
 
   queueProcessor(
     processingQueue,
-    (item) => {
+    async (item) => {
       if (
         !knownItemIdSet.has(item.id) &&
         !enqueuedNotificationSet.has(item.id)
       ) {
         console.info(`Processing not seen Item: ${item.id} - <${item.title}>`);
 
+        const translated = await translateToEn(item.title) ?? undefined
+
         let url = `https://booth.pm/en/items/${item.id}`;
         let embeds = [
           {
             title: item.title,
+            description: translated,
             url,
             fields: [
               {
