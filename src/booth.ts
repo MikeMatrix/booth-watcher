@@ -45,9 +45,7 @@ export async function getNewestItems(): Promise<BoothItem[]> {
 
   for (const url of boothUrls) {
     console.log(`Fetching current dataset from: ${url}`);
-    let response = await client.request<string>({
-      url: process.env.BOOTH_FETCH_URL
-    });
+    let response = await client.request<string>({ url });
   
     let $ = cheerio.load(response.data);
   
