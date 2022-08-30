@@ -60,15 +60,18 @@ export async function getNewestItems(): Promise<BoothItem[]> {
         thumbnailImages.push(imageUrl);
       });
   
-      items.push({
-        id: $(el).data('productId') ?? '',
-        title: $('.item-card__title', el).text(),
-        price: $('.price', el).text(),
-        shopName: $('.item-card__shop-name', el).text(),
-        shopUrl: $('.item-card__shop-name-anchor', el).attr('href') ?? '',
-        shopImageUrl: $('.user-avatar', el).attr('src') ?? '',
-        thumbnailImageUrls: thumbnailImages
-      } as BoothItem);
+      let id = $(el).data('productId') ?? ''
+      if (!items.some(i => i.id === id)) {
+        items.push({
+          id,
+          title: $('.item-card__title', el).text(),
+          price: $('.price', el).text(),
+          shopName: $('.item-card__shop-name', el).text(),
+          shopUrl: $('.item-card__shop-name-anchor', el).attr('href') ?? '',
+          shopImageUrl: $('.user-avatar', el).attr('src') ?? '',
+          thumbnailImageUrls: thumbnailImages
+        } as BoothItem);
+      }
     });
   }
 
