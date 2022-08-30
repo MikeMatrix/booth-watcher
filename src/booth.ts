@@ -26,24 +26,25 @@ export const client = axios.default.create({
   httpsAgent
 });
 
-const boothUrls = [
-  process.env.BOOTH_FETCH_URL,
-  process.env.BOOTH_FETCH_URL_0,
-  process.env.BOOTH_FETCH_URL_1,
-  process.env.BOOTH_FETCH_URL_2,
-  process.env.BOOTH_FETCH_URL_3,
-  process.env.BOOTH_FETCH_URL_4,
-  process.env.BOOTH_FETCH_URL_5,
-  process.env.BOOTH_FETCH_URL_6,
-  process.env.BOOTH_FETCH_URL_7,
-  process.env.BOOTH_FETCH_URL_8,
-  process.env.BOOTH_FETCH_URL_9
-].filter(Boolean);
-
 export async function getNewestItems(): Promise<BoothItem[]> {
   let items = [] as BoothItem[];
 
+  const boothUrls = [
+    process.env.BOOTH_FETCH_URL,
+    process.env.BOOTH_FETCH_URL_0,
+    process.env.BOOTH_FETCH_URL_1,
+    process.env.BOOTH_FETCH_URL_2,
+    process.env.BOOTH_FETCH_URL_3,
+    process.env.BOOTH_FETCH_URL_4,
+    process.env.BOOTH_FETCH_URL_5,
+    process.env.BOOTH_FETCH_URL_6,
+    process.env.BOOTH_FETCH_URL_7,
+    process.env.BOOTH_FETCH_URL_8,
+    process.env.BOOTH_FETCH_URL_9
+  ].filter(Boolean);
+
   for (const url of boothUrls) {
+    console.log(`Fetching current dataset from: ${url}`);
     let response = await client.request<string>({
       url: process.env.BOOTH_FETCH_URL
     });
